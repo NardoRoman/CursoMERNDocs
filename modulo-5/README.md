@@ -1,11 +1,11 @@
 # Módulo 5 — CI/CD, Despliegue y Portafolio
 
-**Resultado:** ver el pipeline fallar y repararse, y dejar un README de portafolio.
+**Resultado:** comprobar cómo el pipeline de GitLab CI/CD bloquea un error de tipos y vuelve a verde al corregirlo, desplegar en la nube y documentar el portafolio.
 
 ```bash
-# Slide 9
+# Slide 9 — Partimos de main con el rediseño final ya integrado
 git switch main
-git pull
+git pull origin main
 git switch -c test/pipeline-rojo
 ```
 
@@ -17,7 +17,7 @@ git switch -c test/pipeline-rojo
 |---|---|
 | **Archivo** | `client/src/App.tsx` |
 | **Copiar desde** | [`paso-01-pipeline-rojo/client/src/App.tsx`](paso-01-pipeline-rojo/client/src/App.tsx) |
-| **Qué cambia** | Agrega la línea `const totalProductos: number = 'cinco';` dentro de `App` |
+| **Qué cambia** | Conserva toda la interfaz final (`design`) y agrega únicamente la línea `const totalProductos: number = 'cinco';` (línea 22) dentro de `App` |
 
 > [!WARNING]
 > **Este archivo NO compila a propósito.** VS Code lo marcará en rojo y el job `build:client` fallará en GitLab con estos errores:
@@ -27,8 +27,10 @@ git switch -c test/pipeline-rojo
 ```bash
 git commit -am "test: introduce error de tipos para probar el pipeline"
 git push -u origin test/pipeline-rojo
-# → Abrir MR hacia main y observar el pipeline ❌
+# → Abrir MR hacia main y observar cómo falla el pipeline ❌
 ```
+
+---
 
 ## Paso 02 · Pipeline en verde ✅ — *Slide 10*
 
@@ -36,12 +38,16 @@ git push -u origin test/pipeline-rojo
 |---|---|
 | **Archivo** | `client/src/App.tsx` |
 | **Copiar desde** | [`paso-02-pipeline-verde/client/src/App.tsx`](paso-02-pipeline-verde/client/src/App.tsx) |
-| **Qué cambia** | Se elimina la línea con el error (queda igual que al final del Módulo 4) |
+| **Qué cambia** | Se elimina la línea `const totalProductos: number = 'cinco';` (regresa al estado limpio de `design`) |
 
 ```bash
 git commit -am "fix: corrige error de tipos detectado por el pipeline"
 git push
-# → El pipeline se ejecuta de nuevo y pasa a ✅
+# → El pipeline se ejecuta de nuevo automáticamente y pasa a ✅
+# → Hacer Merge en GitLab y actualizar main local:
+git switch main
+git pull origin main
+git branch -d test/pipeline-rojo
 ```
 
 ---
@@ -52,19 +58,19 @@ git push
 |---|---|
 | **Archivo** | `README.md` (en la **raíz** de `inventario-app`, no dentro de `client/`) |
 | **Copiar desde** | [`paso-03-readme-portafolio/README.md`](paso-03-readme-portafolio/README.md) |
-| **Qué cambia** | Reemplaza el README de la semilla por una plantilla de portafolio |
+| **Qué cambia** | Reemplaza el README de la semilla por una plantilla profesional de portafolio |
 
 Después de pegarlo, reemplaza `TU-USUARIO`, `Tu Nombre Completo`, los enlaces del demo y la captura de pantalla.
 
 ```bash
 git switch main
-git pull
+git pull origin main
 git switch -c docs/readme-portafolio
 git add README.md
 git commit -m "docs: agrega README de portafolio"
 git push -u origin docs/readme-portafolio
-# → MR y Merge
+# → MR y Merge en GitLab
 ```
 
 > [!NOTE]
-> El despliegue (Render y Netlify/Vercel) y el Release `v1.0.0` (slides 11–15) se configuran en las plataformas web y no requieren modificar archivos del proyecto.
+> El despliegue en **Render** y **Netlify / Vercel** y la creación del tag/Release `v1.0.0` (slides 11–15) se realizan directamente en las plataformas web y con `git tag -a v1.0.0`.

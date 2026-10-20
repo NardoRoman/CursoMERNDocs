@@ -28,7 +28,9 @@ export function App() {
       const data = await getProducts();
       setProducts(data);
     } catch (err: any) {
-      setError(err.message || 'No se pudo conectar con el servidor backend.');
+      setError(
+        err.message || 'No se pudo conectar con el servidor backend. ¿Está corriendo `npm run dev` en server/?'
+      );
     } finally {
       setLoading(false);
     }
@@ -39,13 +41,13 @@ export function App() {
     loadProducts();
   }, []);
 
-  // Handlers que los alumnos conectarán en sus respectivas ramas
+  // Handlers que se conectarán en los Módulos 3 y 4
   const handleProductCreated = (newProduct: Product) => {
     setProducts((prev) => [newProduct, ...prev]);
   };
 
   const handleDeleteProduct = (id: string) => {
-    alert(`[Módulo 4]: Eliminar producto ${id} aún no está conectado al endpoint DELETE.`);
+    alert(`[Módulo 4]: Eliminar producto ${id} pendiente de conectar.`);
   };
 
   const handleOpenEdit = (product: Product) => {
@@ -59,42 +61,24 @@ export function App() {
     );
   };
 
+  const totalStock = products.reduce((acc, curr) => acc + (curr.stock || 0), 0);
+
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans">
-      {/* Barra de navegación superior */}
-      <Navbar productCount={products.length} />
+      <Navbar productCount={totalStock} />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Banner de Bienvenida del Curso */}
+        {/* Banner de Estado (se quita el recuadro amarillo de prueba del Módulo 1) */}
         <div className="bg-gradient-to-r from-indigo-700 to-violet-800 text-white rounded-2xl p-6 shadow-md mb-8">
           <span className="bg-indigo-500 bg-opacity-30 border border-indigo-400 text-indigo-100 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
-            Repositorio Semilla • Rama main
+            Rama: feature/ver-inventario
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold mt-3">
-            Sistema de Inventario Simple (MERN + TS)
+            Módulo 2: Operación READ Implementada
           </h1>
           <p className="mt-2 text-indigo-100 text-sm leading-relaxed max-w-3xl">
-            ¡Bienvenido al curso de Git & GitLab! Esta es la rama base del proyecto.
-            Recuerda la regla de oro: <strong>"Nunca trabajes directo en main"</strong>.
-            Irás implementando cada funcionalidad en su propia rama de características.
+            En esta rama se implementó la conexión GET hacia MongoDB Atlas usando <code>useEffect</code> y <code>fetch()</code>, y la tabla responsiva con Tailwind CSS.
           </p>
-        </div>
-
-        {/* ================================================================= */}
-        {/* [MÓDULO 1] - PEQUEÑA PRUEBA DE COMPILACIÓN EN REACT               */}
-        {/* ================================================================= */}
-        <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl mb-8 shadow-sm">
-          <div className="flex items-start">
-            <span className="text-2xl mr-3">🧪</span>
-            <div>
-              <h3 className="text-sm font-bold text-amber-900">
-                Prueba del Módulo 1: Modificar texto estático
-              </h3>
-              <p className="text-xs text-amber-800 mt-1 leading-relaxed">
-                Abre el archivo <code className="bg-amber-100 px-1 py-0.5 rounded font-mono font-bold text-amber-900">client/src/App.tsx</code> y modifica este texto usando clases de Tailwind CSS para confirmar que tu entorno compila correctamente antes de crear ramas.
-              </p>
-            </div>
-          </div>
         </div>
 
         {/* ================================================================= */}
@@ -102,7 +86,7 @@ export function App() {
         {/* ================================================================= */}
         {error && (
           <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg shadow-sm">
-            <h3 className="text-sm font-bold text-red-800">Error de conexión</h3>
+            <h3 className="text-sm font-bold text-red-800">Error de conexión con MongoDB Atlas</h3>
             <p className="text-xs text-red-700 mt-1">{error}</p>
             <button
               onClick={loadProducts}
@@ -113,10 +97,10 @@ export function App() {
           </div>
         )}
 
-        {/* [MÓDULO 3] Formulario para Crear Productos (Rama feature/agregar-producto) */}
+        {/* Formulario (Aún pendiente de Módulo 3) */}
         <ProductForm onProductCreated={handleProductCreated} />
 
-        {/* [MÓDULO 2] Tabla de Inventario (Rama feature/ver-inventario) */}
+        {/* Tabla Dinámica (Módulo 2 Listo) */}
         <ProductList
           products={products}
           loading={loading}
@@ -125,7 +109,7 @@ export function App() {
         />
       </main>
 
-      {/* [MÓDULO 4] Modal de Edición (Rama feature/editar-eliminar) */}
+      {/* Modal de Edición (Pendiente Módulo 4) */}
       <EditModal
         product={editingProduct}
         isOpen={isEditModalOpen}
@@ -134,7 +118,7 @@ export function App() {
       />
 
       <footer className="bg-white border-t border-gray-200 py-4 text-center text-xs text-gray-500">
-        Curso MERN (TypeScript) + Git/GitLab • Repositorio Semilla para Alumnos
+        Curso MERN (TypeScript) + Git/GitLab • Rama feature/ver-inventario
       </footer>
     </div>
   );

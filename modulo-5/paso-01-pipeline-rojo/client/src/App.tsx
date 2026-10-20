@@ -5,16 +5,14 @@ import { Navbar } from './components/Navbar';
 import { ProductForm } from './components/ProductForm';
 import { ProductList } from './components/ProductList';
 import { EditModal } from './components/EditModal';
+import { Boxes, PackageCheck, CircleDollarSign, AlertCircle, RefreshCw, CheckCircle2 } from 'lucide-react';
 
 export function App() {
-  // ==========================================================================
-  // [MÓDULO 2 · Paso 02] - Tres estados para una petición: datos, carga y error
-  // ==========================================================================
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Estados para el modal de edición (Módulo 4)
+  // Estados para el modal de edición
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
 
@@ -23,9 +21,7 @@ export function App() {
   //    En el Paso 02 se elimina esta línea para regresar a VERDE.
   const totalProductos: number = 'cinco';
 
-  // ==========================================================================
-  // [MÓDULO 2 · Paso 02] - OPERACIÓN READ: cargar productos al iniciar
-  // ==========================================================================
+  // Carga inicial de datos desde MongoDB Atlas
   const loadProducts = async () => {
     try {
       setLoading(true);
@@ -33,109 +29,163 @@ export function App() {
       const data = await getProducts();
       setProducts(data);
     } catch (err: any) {
-      setError(err.message || 'No se pudo conectar con el servidor backend.');
+      setError(
+        err.message || 'No se pudo conectar con el servidor backend. Asegúrate de que el servidor Express esté ejecutándose.'
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  // El arreglo vacío [] hace que se ejecute una sola vez, al montar el componente
   useEffect(() => {
     loadProducts();
   }, []);
 
-  // [MÓDULO 3] Callback que invoca ProductForm al crear un producto
+  // Manejo de creación (CREATE)
   const handleProductCreated = (newProduct: Product) => {
     setProducts((prev) => [newProduct, ...prev]);
   };
 
-  // ==========================================================================
-  // [MÓDULO 4 · Paso 02] - OPERACIÓN DELETE: confirmar, borrar y filtrar
-  // ==========================================================================
+  // Manejo de eliminación (DELETE)
   const handleDeleteProduct = async (id: string) => {
-    const confirmar = window.confirm('¿Seguro que deseas eliminar este producto?');
-    if (!confirmar) return;
+    const item = products.find((p) => p._id === id);
+    const confirm = window.confirm(`¿Estás seguro de que deseas eliminar "${item?.nombre || 'este producto'}" de la base de datos?`);
+    if (!confirm) return;
 
     try {
       await deleteProduct(id);
-      // Inmutabilidad: .filter() crea un arreglo NUEVO sin el producto eliminado
       setProducts((prev) => prev.filter((p) => p._id !== id));
     } catch (err: any) {
-      alert(`Error al eliminar: ${err.message}`);
+      alert(`Error al eliminar el producto: ${err.message}`);
     }
   };
 
-  // [MÓDULO 4] Abrir el modal de edición con el producto seleccionado
+  // Manejo de actualización (UPDATE)
   const handleOpenEdit = (product: Product) => {
     setEditingProduct(product);
     setIsEditModalOpen(true);
   };
 
-  // [MÓDULO 4] Reemplazar el producto editado usando .map()
   const handleProductUpdated = (updatedProduct: Product) => {
     setProducts((prev) =>
       prev.map((p) => (p._id === updatedProduct._id ? updatedProduct : p))
     );
   };
 
+  // Métricas calculadas para el dashboard
+  const totalItems = products.length;
+  const totalStockUnits = products.reduce((acc, curr) => acc + (curr.stock || 0), 0);
+  const totalInventoryValue = products.reduce((acc, curr) => acc + (curr.precio * curr.stock || 0), 0);
+
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-sans">
-      {/* Barra de navegación superior */}
-      <Navbar productCount={products.length} />
+    <div className="min-h-screen bg-[#f5f5f7] flex flex-col font-sans selection:bg-blue-100 selection:text-blue-900">
+      {/* Barra de navegación superior translúcida */}
+      <Navbar productCount={totalStockUnits} />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Banner de Bienvenida del Curso */}
-        <div className="bg-gradient-to-r from-indigo-700 to-violet-800 text-white rounded-2xl p-6 shadow-md mb-8">
-          <span className="bg-indigo-500 bg-opacity-30 border border-indigo-400 text-indigo-100 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
-            Repositorio Semilla • Rama main
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold mt-3">
-            Sistema de Inventario Simple (MERN + TS)
-          </h1>
-          <p className="mt-2 text-indigo-100 text-sm leading-relaxed max-w-3xl">
-            ¡Bienvenido al curso de Git & GitLab! Esta es la rama base del proyecto.
-            Recuerda la regla de oro: <strong>"Nunca trabajes directo en main"</strong>.
-            Irás implementando cada funcionalidad en su propia rama de características.
-          </p>
-        </div>
-
-        {/* ================================================================= */}
-        {/* [MÓDULO 1] - PEQUEÑA PRUEBA DE COMPILACIÓN EN REACT               */}
-        {/* ================================================================= */}
-        <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl mb-8 shadow-sm">
-          <div className="flex items-start">
-            <span className="text-2xl mr-3">🧪</span>
-            <div>
-              <h3 className="text-sm font-bold text-amber-900">
-                Prueba del Módulo 1: Modificar texto estático
-              </h3>
-              <p className="text-xs text-amber-800 mt-1 leading-relaxed">
-                Abre el archivo <code className="bg-amber-100 px-1 py-0.5 rounded font-mono font-bold text-amber-900">client/src/App.tsx</code> y modifica este texto usando clases de Tailwind CSS para confirmar que tu entorno compila correctamente antes de crear ramas.
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        {/* Panel de Encabezado y Métricas */}
+        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-black/[0.06] shadow-sm relative overflow-hidden">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="max-w-2xl">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200/50 mb-3">
+                <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
+                <span>Panel de Control • Rama design</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900">
+                Gestión de Inventario
+              </h1>
+              <p className="mt-1 text-sm text-slate-500 leading-relaxed">
+                Control de catálogo en tiempo real con MongoDB Atlas, Express y React con TypeScript.
               </p>
+            </div>
+
+            <button
+              onClick={loadProducts}
+              disabled={loading}
+              className="self-start md:self-auto inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium bg-slate-100 hover:bg-slate-200/80 active:scale-[0.98] text-slate-700 transition duration-150 border border-black/[0.04]"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-blue-600' : 'text-slate-500'}`} />
+              <span>Sincronizar</span>
+            </button>
+          </div>
+
+          {/* Tarjetas de Métricas (Apple Widgets) */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-black/[0.06]">
+            {/* Widget 1 */}
+            <div className="bg-slate-50/70 rounded-2xl p-4 sm:p-5 border border-black/[0.04] transition hover:bg-slate-50/90">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-slate-500">Productos Registrados</span>
+                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <Boxes className="w-4 h-4" />
+                </div>
+              </div>
+              <p className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900 mt-2">
+                {totalItems}
+              </p>
+              <span className="text-[11px] text-slate-400 mt-0.5 block font-normal">
+                Artículos únicos en catálogo
+              </span>
+            </div>
+
+            {/* Widget 2 */}
+            <div className="bg-slate-50/70 rounded-2xl p-4 sm:p-5 border border-black/[0.04] transition hover:bg-slate-50/90">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-slate-500">Unidades en Stock</span>
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <PackageCheck className="w-4 h-4" />
+                </div>
+              </div>
+              <p className="text-2xl sm:text-3xl font-semibold tracking-tight text-emerald-600 mt-2">
+                {totalStockUnits}
+              </p>
+              <span className="text-[11px] text-slate-400 mt-0.5 block font-normal">
+                Disponibles para despacho
+              </span>
+            </div>
+
+            {/* Widget 3 */}
+            <div className="bg-slate-50/70 rounded-2xl p-4 sm:p-5 border border-black/[0.04] transition hover:bg-slate-50/90">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-slate-500">Valor de Inventario</span>
+                <div className="w-8 h-8 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center">
+                  <CircleDollarSign className="w-4 h-4" />
+                </div>
+              </div>
+              <p className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900 mt-2">
+                ${totalInventoryValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+              <span className="text-[11px] text-slate-400 mt-0.5 block font-normal">
+                Valor estimado total en USD
+              </span>
             </div>
           </div>
         </div>
 
-        {/* ================================================================= */}
-        {/* [MÓDULO 2 · Paso 02] - Alerta de error con botón para reintentar  */}
-        {/* ================================================================= */}
+        {/* Alerta de Error (Apple System Banner) */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg shadow-sm">
-            <h3 className="text-sm font-bold text-red-800">Error de conexión</h3>
-            <p className="text-xs text-red-700 mt-1">{error}</p>
+          <div className="p-4 bg-red-50/90 backdrop-blur-md border border-red-200/80 rounded-2xl shadow-sm flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold text-red-900">Error de comunicación</h3>
+                <p className="text-xs text-red-700 mt-0.5">{error}</p>
+              </div>
+            </div>
             <button
               onClick={loadProducts}
-              className="mt-2 text-xs font-semibold text-red-800 underline hover:text-red-900"
+              className="px-3.5 py-1.5 bg-red-100 hover:bg-red-200/80 active:scale-[0.98] text-red-800 text-xs font-semibold rounded-xl transition duration-150"
             >
-              Reintentar conexión
+              Reintentar
             </button>
           </div>
         )}
 
-        {/* [MÓDULO 3] Formulario para Crear Productos (Rama feature/agregar-producto) */}
+        {/* Formulario de Registro de Productos (CREATE) */}
         <ProductForm onProductCreated={handleProductCreated} />
 
-        {/* [MÓDULO 2] Tabla de Inventario (Rama feature/ver-inventario) */}
+        {/* Catálogo y Tabla de Productos (READ / UPDATE / DELETE) */}
         <ProductList
           products={products}
           loading={loading}
@@ -144,7 +194,7 @@ export function App() {
         />
       </main>
 
-      {/* [MÓDULO 4] Modal de Edición (Rama feature/editar-eliminar) */}
+      {/* Modal de Actualización (UPDATE) */}
       <EditModal
         product={editingProduct}
         isOpen={isEditModalOpen}
@@ -152,8 +202,10 @@ export function App() {
         onProductUpdated={handleProductUpdated}
       />
 
-      <footer className="bg-white border-t border-gray-200 py-4 text-center text-xs text-gray-500">
-        Curso MERN (TypeScript) + Git/GitLab • Repositorio Semilla para Alumnos
+      {/* Pie de Página */}
+      <footer className="border-t border-black/[0.06] py-8 mt-12 text-center text-xs text-slate-400">
+        <p className="font-medium text-slate-600">Sistema de Inventario • MERN + Git/GitLab</p>
+        <p className="text-slate-400 mt-1">Diseñado con principios de interacción fluida de Apple • TypeScript & Tailwind CSS</p>
       </footer>
     </div>
   );

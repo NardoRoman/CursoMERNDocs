@@ -7,20 +7,15 @@ import { ProductList } from './components/ProductList';
 import { EditModal } from './components/EditModal';
 
 export function App() {
-  // ==========================================================================
-  // [MÓDULO 2 · Paso 02] - Tres estados para una petición: datos, carga y error
-  // ==========================================================================
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Estados para el modal de edición (Módulo 4)
+  // Estados para el modal de edición
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
 
-  // ==========================================================================
-  // [MÓDULO 2 · Paso 02] - OPERACIÓN READ: cargar productos al iniciar
-  // ==========================================================================
+  // [MÓDULO 2] - Cargar productos
   const loadProducts = async () => {
     try {
       setLoading(true);
@@ -28,28 +23,29 @@ export function App() {
       const data = await getProducts();
       setProducts(data);
     } catch (err: any) {
-      setError(err.message || 'No se pudo conectar con el servidor backend.');
+      setError(
+        err.message || 'No se pudo conectar con el backend. ¿Asegúrate de ejecutar `npm run dev` en server/?'
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  // El arreglo vacío [] hace que se ejecute una sola vez, al montar el componente
   useEffect(() => {
     loadProducts();
   }, []);
 
-  // [MÓDULO 3] Callback que invoca ProductForm al crear un producto
+  // [MÓDULO 3] - Callback cuando se crea un producto
   const handleProductCreated = (newProduct: Product) => {
     setProducts((prev) => [newProduct, ...prev]);
   };
 
   // ==========================================================================
-  // [MÓDULO 4 · Paso 02] - OPERACIÓN DELETE: confirmar, borrar y filtrar
+  // [MÓDULO 4 · Paso 02] - OPERACIÓN DELETE: Eliminar producto por ID
   // ==========================================================================
   const handleDeleteProduct = async (id: string) => {
-    const confirmar = window.confirm('¿Seguro que deseas eliminar este producto?');
-    if (!confirmar) return;
+    const confirm = window.confirm('¿Estás seguro de que deseas eliminar este producto de la base de datos?');
+    if (!confirm) return;
 
     try {
       await deleteProduct(id);
@@ -60,77 +56,57 @@ export function App() {
     }
   };
 
-  // [MÓDULO 4] Abrir el modal de edición con el producto seleccionado
+  // ==========================================================================
+  // [MÓDULO 4] - OPERACIÓN UPDATE: Editar producto mediante modal y PUT
+  // ==========================================================================
   const handleOpenEdit = (product: Product) => {
     setEditingProduct(product);
     setIsEditModalOpen(true);
   };
 
-  // [MÓDULO 4] Reemplazar el producto editado usando .map()
   const handleProductUpdated = (updatedProduct: Product) => {
     setProducts((prev) =>
       prev.map((p) => (p._id === updatedProduct._id ? updatedProduct : p))
     );
   };
 
+  const totalStock = products.reduce((acc, curr) => acc + (curr.stock || 0), 0);
+
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans">
-      {/* Barra de navegación superior */}
-      <Navbar productCount={products.length} />
+      <Navbar productCount={totalStock} />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Banner de Bienvenida del Curso */}
-        <div className="bg-gradient-to-r from-indigo-700 to-violet-800 text-white rounded-2xl p-6 shadow-md mb-8">
-          <span className="bg-indigo-500 bg-opacity-30 border border-indigo-400 text-indigo-100 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
-            Repositorio Semilla • Rama main
+        {/* Banner de Estado (Módulo 4) */}
+        <div className="bg-gradient-to-r from-violet-700 to-indigo-900 text-white rounded-2xl p-6 shadow-md mb-8">
+          <span className="bg-violet-500 bg-opacity-30 border border-violet-400 text-violet-100 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
+            Rama: feature/editar-eliminar • CRUD 100% Completado
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold mt-3">
-            Sistema de Inventario Simple (MERN + TS)
+            Módulo 4: Operaciones UPDATE y DELETE Implementadas
           </h1>
-          <p className="mt-2 text-indigo-100 text-sm leading-relaxed max-w-3xl">
-            ¡Bienvenido al curso de Git & GitLab! Esta es la rama base del proyecto.
-            Recuerda la regla de oro: <strong>"Nunca trabajes directo en main"</strong>.
-            Irás implementando cada funcionalidad en su propia rama de características.
+          <p className="mt-2 text-violet-100 text-sm leading-relaxed max-w-3xl">
+            Todas las operaciones CRUD están conectadas a MongoDB Atlas mediante Express y TypeScript con <code>fetch</code> nativo.
           </p>
         </div>
 
-        {/* ================================================================= */}
-        {/* [MÓDULO 1] - PEQUEÑA PRUEBA DE COMPILACIÓN EN REACT               */}
-        {/* ================================================================= */}
-        <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl mb-8 shadow-sm">
-          <div className="flex items-start">
-            <span className="text-2xl mr-3">🧪</span>
-            <div>
-              <h3 className="text-sm font-bold text-amber-900">
-                Prueba del Módulo 1: Modificar texto estático
-              </h3>
-              <p className="text-xs text-amber-800 mt-1 leading-relaxed">
-                Abre el archivo <code className="bg-amber-100 px-1 py-0.5 rounded font-mono font-bold text-amber-900">client/src/App.tsx</code> y modifica este texto usando clases de Tailwind CSS para confirmar que tu entorno compila correctamente antes de crear ramas.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* ================================================================= */}
-        {/* [MÓDULO 2 · Paso 02] - Alerta de error con botón para reintentar  */}
-        {/* ================================================================= */}
         {error && (
           <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg shadow-sm">
             <h3 className="text-sm font-bold text-red-800">Error de conexión</h3>
             <p className="text-xs text-red-700 mt-1">{error}</p>
             <button
               onClick={loadProducts}
-              className="mt-2 text-xs font-semibold text-red-800 underline hover:text-red-900"
+              className="mt-2 text-xs font-semibold text-red-800 underline"
             >
               Reintentar conexión
             </button>
           </div>
         )}
 
-        {/* [MÓDULO 3] Formulario para Crear Productos (Rama feature/agregar-producto) */}
+        {/* Formulario de Creación (Módulo 3) */}
         <ProductForm onProductCreated={handleProductCreated} />
 
-        {/* [MÓDULO 2] Tabla de Inventario (Rama feature/ver-inventario) */}
+        {/* Tabla y Acciones (Módulos 2 y 4) */}
         <ProductList
           products={products}
           loading={loading}
@@ -139,7 +115,7 @@ export function App() {
         />
       </main>
 
-      {/* [MÓDULO 4] Modal de Edición (Rama feature/editar-eliminar) */}
+      {/* Modal de Edición (Módulo 4) */}
       <EditModal
         product={editingProduct}
         isOpen={isEditModalOpen}
@@ -148,7 +124,7 @@ export function App() {
       />
 
       <footer className="bg-white border-t border-gray-200 py-4 text-center text-xs text-gray-500">
-        Curso MERN (TypeScript) + Git/GitLab • Repositorio Semilla para Alumnos
+        Curso MERN (TypeScript) + Git/GitLab • Rama feature/editar-eliminar
       </footer>
     </div>
   );
